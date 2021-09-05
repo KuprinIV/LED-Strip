@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="effects_values">
+        <item>Switch off</item>
+        <item>Four color blinking</item>
+        <item>Two color blinking</item>
+        <item>Smooth strip color change</item>
+        <item>Constant strip color</item>
+        <item>Blinking strip color</item>
+        <item>Shifting strip part color</item>
+        <item>Rainbow</item>
+    </string-array>
+
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="effects_values">
+        <item>Выкл.</item>
+        <item>Мигание 4-х цветов </item>
+        <item>Мигание 2-х цветов</item>
+        <item>Плавное изменение цвета ленты</item>
+        <item>Постоянный цвет ленты</item>
+        <item>Мигание всей ленты</item>
+        <item>"Змейка"</item>
+        <item>Радуга</item>
+    </string-array>
+
+</resources>
