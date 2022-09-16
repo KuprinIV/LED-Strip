@@ -57,14 +57,14 @@ public class LED_ControlActivity extends AppCompatActivity {
 
     // define effects parameters
     private final effectsParameters[] effects = {
-            new effectsParameters((byte)3, new int[]{Color.BLACK}, (byte)0, (byte)0, (byte)0), // switch off strip
-            new effectsParameters((byte)0, new int[]{Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE}, (byte)0, (byte)0, (byte)0), // four colors blinking effect
-            new effectsParameters((byte)1, new int[]{Color.RED, Color.YELLOW}, (byte)0, (byte)0, (byte)1), // two colors blinking effect
-            new effectsParameters((byte)2, null, (byte)255, (byte)150, (byte)0), // smooth strip color changing effect
-            new effectsParameters((byte)3, new int[]{Color.WHITE}, (byte)0, (byte)0, (byte)0), // constant strip color effect
-            new effectsParameters((byte)4, new int[]{Color.WHITE}, (byte)0, (byte)0, (byte)0), // blinking strip color effect
-            new effectsParameters((byte)5, new int[]{Color.WHITE}, (byte)0, (byte)0, (byte)15) , // shifting color part of strip effect
-            new effectsParameters((byte)6, null, (byte)255, (byte)150, (byte)0) // rainbow
+            new effectsParameters((byte)0, new int[]{Color.BLACK}, (byte)0, (byte)0, (byte)0), // switch off strip
+            new effectsParameters((byte)1, new int[]{Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE}, (byte)0, (byte)0, (byte)0), // four colors blinking effect
+            new effectsParameters((byte)2, new int[]{Color.RED, Color.YELLOW}, (byte)0, (byte)0, (byte)1), // two colors blinking effect
+            new effectsParameters((byte)3, null, (byte)255, (byte)150, (byte)0), // smooth strip color changing effect
+            new effectsParameters((byte)4, new int[]{Color.WHITE}, (byte)0, (byte)0, (byte)0), // constant strip color effect
+            new effectsParameters((byte)5, new int[]{Color.WHITE}, (byte)0, (byte)0, (byte)0), // blinking strip color effect
+            new effectsParameters((byte)6, new int[]{Color.WHITE}, (byte)0, (byte)0, (byte)15) , // shifting color part of strip effect
+            new effectsParameters((byte)7, null, (byte)255, (byte)150, (byte)0) // rainbow
     };
 
     // effect 1 data
