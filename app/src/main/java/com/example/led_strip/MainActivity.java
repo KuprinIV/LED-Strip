@@ -190,8 +190,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(requestCode == REQUEST_CODE_LED_CONTROL){
-            if(data.getBooleanExtra(EXTRAS_HAS_SAVED_DEVICE_ADDRESS, false)){
-                finish();
+            if(data != null) {
+                if (data.getBooleanExtra(EXTRAS_HAS_SAVED_DEVICE_ADDRESS, false)) {
+                    finish();
+                }
             }
         }
 

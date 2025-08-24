@@ -3,7 +3,6 @@ package com.example.led_strip;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
-import android.app.Application;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
@@ -16,6 +15,7 @@ import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -32,6 +32,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,11 +61,11 @@ public class LED_ControlActivity extends AppCompatActivity {
             new effectsParameters((byte)0, new int[]{Color.BLACK}, (byte)0, (byte)0, (byte)0), // switch off strip
             new effectsParameters((byte)1, new int[]{Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE}, (byte)0, (byte)0, (byte)0), // four colors blinking effect
             new effectsParameters((byte)2, new int[]{Color.RED, Color.YELLOW}, (byte)0, (byte)0, (byte)1), // two colors blinking effect
-            new effectsParameters((byte)3, null, (byte)255, (byte)150, (byte)0), // smooth strip color changing effect
+            new effectsParameters((byte)3, null, (byte)255, (byte)255, (byte)0), // smooth strip color changing effect
             new effectsParameters((byte)4, new int[]{Color.WHITE}, (byte)0, (byte)0, (byte)0), // constant strip color effect
             new effectsParameters((byte)5, new int[]{Color.WHITE}, (byte)0, (byte)0, (byte)0), // blinking strip color effect
             new effectsParameters((byte)6, new int[]{Color.WHITE}, (byte)0, (byte)0, (byte)15) , // shifting color part of strip effect
-            new effectsParameters((byte)7, null, (byte)255, (byte)150, (byte)0) // rainbow
+            new effectsParameters((byte)7, null, (byte)255, (byte)255, (byte)0) // rainbow
     };
 
     // effect 1 data
@@ -89,6 +90,7 @@ public class LED_ControlActivity extends AppCompatActivity {
 
     private ColorScale currentColorScale = ColorScale.RGB;
     private int h, s, v;
+    private boolean isEffectLoaded = false;
 
 
     private TextView connectionStateTextView;
@@ -114,9 +116,7 @@ public class LED_ControlActivity extends AppCompatActivity {
     private TextView blueColorSeekBarName;
     private TextView colorCodeTV;
 
-    private void initFourColorsBlinkingLayout(){
-        fourColorsBlinkingLayout = findViewById(R.id.four_color_blinking_control_layout);
-
+    private void  initFourColorsBlinkingLayout(){
         for(int i = 0; i < effects[1].colors.length; i++){
             setIndicatorColor(effects[1].colors[i], (ImageView)findViewById(effect1_indicators[i]));
         }
@@ -150,8 +150,6 @@ public class LED_ControlActivity extends AppCompatActivity {
     }
 
     private void initTwoColorBlinkingLayout(){
-        twoColorsBlinkingLayout = findViewById(R.id.two_color_blinking_control_layout);
-
         for(int i = 0; i < effects[2].colors.length; i++){
             setIndicatorColor(effects[2].colors[i], (ImageView)findViewById(effect2_indicators[i]));
         }
@@ -207,11 +205,11 @@ public class LED_ControlActivity extends AppCompatActivity {
     }
 
     private byte[] valuesList = new byte[]{0, 25, 50, 75, 100, 125, (byte)150, (byte)175, (byte)200, (byte)225, (byte)255};
-    private int valueIndex = 6;
-    private int valueIndexRainbow = 6;
+    private int valueIndex = 10;
+    private int valueIndexRainbow = 10;
 
     private void initHSVColorLayout(){
-        hsvColorLayout = findViewById(R.id.hsv_color_control);
+        valueIndex = getIndexOfValue(valuesList, effects[3].value);
 
         LinearLayout pickerLayout = findViewById(R.id.pickerLayoutHSV);
         final EditText pickerValue = pickerLayout.findViewById(R.id.pickerTextValue);
@@ -246,21 +244,18 @@ public class LED_ControlActivity extends AppCompatActivity {
     }
 
     private void initConstantLayout(){
-        constantLayout = findViewById(R.id.constant_control_layout);
         for(int i = 0; i < effects[4].colors.length; i++){
             setIndicatorColor(effects[4].colors[i], (ImageView)findViewById(effect4_indicators[i]));
         }
     }
 
     private void initBlinkingLayout(){
-        blinkingLayout = findViewById(R.id.blinking_control_layout);
         for(int i = 0; i < effects[5].colors.length; i++){
             setIndicatorColor(effects[5].colors[i], (ImageView)findViewById(effect5_indicators[i]));
         }
     }
 
     private void initShiftingLayout(){
-        shiftingLayout = findViewById(R.id.shifting_control_layout);
         for(int i = 0; i < effects[6].colors.length; i++){
             setIndicatorColor(effects[6].colors[i], (ImageView)findViewById(effect6_indicators[i]));
         }
@@ -296,7 +291,7 @@ public class LED_ControlActivity extends AppCompatActivity {
     }
 
     private void initRainbowLayout(){
-        rainbowLayout = findViewById(R.id.rainbow_control);
+        valueIndexRainbow = getIndexOfValue(valuesList, effects[7].value);
 
         LinearLayout pickerLayout = findViewById(R.id.pickerLayoutRainbow);
         final EditText pickerValue = pickerLayout.findViewById(R.id.pickerTextValue);
@@ -502,8 +497,16 @@ public class LED_ControlActivity extends AppCompatActivity {
             }
         });
 
+        settingsLayout = findViewById(R.id.settingLayout);
+        fourColorsBlinkingLayout = findViewById(R.id.four_color_blinking_control_layout);
+        twoColorsBlinkingLayout = findViewById(R.id.two_color_blinking_control_layout);
+        hsvColorLayout = findViewById(R.id.hsv_color_control);
+        constantLayout = findViewById(R.id.constant_control_layout);
+        blinkingLayout = findViewById(R.id.blinking_control_layout);
+        shiftingLayout = findViewById(R.id.shifting_control_layout);
+        rainbowLayout = findViewById(R.id.rainbow_control);
+
         effectsSpinner = findViewById(R.id.effectsSpinner);
-        effectsSpinner.setSelection(1);
         effectsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -548,7 +551,6 @@ public class LED_ControlActivity extends AppCompatActivity {
                         shiftingLayout.setVisibility(View.GONE);
                         rainbowLayout.setVisibility(View.GONE);
                         setColorLayout.setVisibility(View.VISIBLE);
-
                         break;
 
                     case 3:
@@ -613,12 +615,15 @@ public class LED_ControlActivity extends AppCompatActivity {
                         break;
                 }
 
-                if(effects[currentEffectIndex].colors != null) {
+                if(effects[currentEffectIndex].colors != null && currentEffectIndex > 0) {
                     setIndicatorColor(effects[currentEffectIndex].colors[currentColorIndex], (ImageView) findViewById(currentIndicators[currentColorIndex]));
                     updateColorSeekBars(effects[currentEffectIndex].colors[currentColorIndex], currentColorScale);
                 }
-                prepareCommandData();
-                sendCommand();
+                if(!isEffectLoaded) {
+                    prepareCommandData();
+                    sendCommand();
+                }
+                isEffectLoaded = false;
             }
 
             @Override
@@ -626,15 +631,6 @@ public class LED_ControlActivity extends AppCompatActivity {
 
             }
         });
-        // init effects control layouts
-        settingsLayout = findViewById(R.id.settingLayout);
-        initFourColorsBlinkingLayout();
-        initTwoColorBlinkingLayout();
-        initHSVColorLayout();
-        initConstantLayout();
-        initBlinkingLayout();
-        initShiftingLayout();
-        initRainbowLayout();
 
         // init color setting layout
         initColorSetLayout();
@@ -694,6 +690,15 @@ public class LED_ControlActivity extends AppCompatActivity {
     }
 
 
+    int getIndexOfValue(byte[] values_list, byte value){
+        for(int i = 0; i < values_list.length; i++)
+        {
+            if(value == values_list[i]) return i;
+        }
+        return 0;
+    }
+
+
     void setSettingsLayoutEnabled(boolean isEnable){
         effectsSpinner.setEnabled(isEnable);
         settingsLayout.setVisibility(isEnable ? View.VISIBLE : View.GONE);
@@ -704,12 +709,91 @@ public class LED_ControlActivity extends AppCompatActivity {
         if(isConnected){
             connectionStateTextView.setText(getResources().getString(R.string.device_connected_message));
             connectCtrlButton.setText(getResources().getString(R.string.disconnect_button));
-            setSettingsLayoutEnabled(true);
         }else {
             connectionStateTextView.setText(getResources().getString(R.string.device_disconnected_message));
             connectCtrlButton.setText(getResources().getString(R.string.connect_button));
-            setSettingsLayoutEnabled(false);
         }
+    }
+
+    void updateEffectLayouts(byte[] b){
+        if(b[1] < 8) {
+            ByteBuffer color_code = ByteBuffer.allocate(4);
+            currentEffectIndex = b[1];
+            // fill effect parameters array
+            effects[currentEffectIndex].effectNum = b[1];
+            if (effects[currentEffectIndex].colors != null) {
+                if (effects[currentEffectIndex].colors.length >= 1) {
+                    color_code.put(0,(byte)0);
+                    color_code.put(1, b[3]);
+                    color_code.put(2, b[2]);
+                    color_code.put(3, b[4]);
+                    color_code.position(0);
+                    effects[currentEffectIndex].colors[0] = color_code.getInt();
+                }
+                if (effects[currentEffectIndex].colors.length >= 2) {
+                    color_code.put(0,(byte)0);
+                    color_code.put(1, b[6]);
+                    color_code.put(2, b[5]);
+                    color_code.put(3, b[7]);
+                    color_code.position(0);
+                    effects[currentEffectIndex].colors[1] = color_code.getInt();
+                }
+                if (effects[currentEffectIndex].colors.length >= 3) {
+                    color_code.put(0,(byte)0);
+                    color_code.put(1, b[9]);
+                    color_code.put(2, b[8]);
+                    color_code.put(3, b[10]);
+                    color_code.position(0);
+                    effects[currentEffectIndex].colors[2] = color_code.getInt();
+                }
+                if (effects[currentEffectIndex].colors.length == 4) {
+                    color_code.put(0,(byte)0);
+                    color_code.put(1, b[12]);
+                    color_code.put(2, b[11]);
+                    color_code.put(3, b[13]);
+                    color_code.position(0);
+                    effects[currentEffectIndex].colors[3] = color_code.getInt();
+                }
+            }
+            effects[currentEffectIndex].saturation = b[14];
+            effects[currentEffectIndex].value = b[15];
+            effects[currentEffectIndex].sectionSize = b[16];
+
+            // init effects control layouts
+            initFourColorsBlinkingLayout();
+            initTwoColorBlinkingLayout();
+            initHSVColorLayout();
+            initConstantLayout();
+            initBlinkingLayout();
+            initShiftingLayout();
+            initRainbowLayout();
+
+            isEffectLoaded = true;
+            effectsSpinner.setSelection(currentEffectIndex);
+            setSettingsLayoutEnabled(isConnected);
+        }
+    }
+
+    void prepareGetEffect(){
+        commandData[0] = 'G';
+        commandData[1] = 'e';
+        commandData[2] = 't';
+        commandData[3] = ' ';
+        commandData[4] = 'e';
+        commandData[5] = 'f';
+        commandData[6] = 'f';
+        commandData[7] = 'e';
+        commandData[8] = 'c';
+        commandData[9] = 't';
+        commandData[10] = (byte)0x00;
+        commandData[11] = (byte)0x00;
+        commandData[12] = (byte)0x00;
+        commandData[13] = (byte)0x00;
+        commandData[14] = (byte)0x00;
+        commandData[15] = (byte)0x00;
+        commandData[16] = (byte)0x00;
+        commandData[17] = (byte)0x00;
+        commandData[18] = (byte)0x00;
     }
 
     void prepareCommandData(){
@@ -953,13 +1037,26 @@ public class LED_ControlActivity extends AppCompatActivity {
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Get read and write characteristics of BLE device
                 getGattCharacteristics(mBluetoothLeService.getSupportedGattServices());
+                // get current effect parameters from device
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        prepareGetEffect();
+                        sendCommand();
+                    }
+                }, 200);
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 // handle data receive action
                 byte[] deviceReply = mReadGattCharacteristic.getValue();
-                String str = new String(deviceReply, StandardCharsets.UTF_8);
-                if(str.contains("Effect set")){ // device can receive command
-                    if(mCommandQueue.peek() != null){ // if queue isn't empty send command
-                        sendCommand();
+                if(deviceReply[0] == (byte)0xAA && deviceReply[17] == (byte)0x0D && deviceReply[18] == (byte)0x0A){
+                    // update effect layouts
+                    updateEffectLayouts(deviceReply);
+                }else {
+                    String str = new String(deviceReply, StandardCharsets.UTF_8);
+                    if (str.contains("Effect set")) { // device can receive command
+                        if (mCommandQueue.peek() != null) { // if queue isn't empty send command
+                            sendCommand();
+                        }
                     }
                 }
             }
